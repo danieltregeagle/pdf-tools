@@ -102,6 +102,22 @@
 #include <errno.h>
 #include <limits.h>
 
+/* ---------- GNU vasprintf shim for MinGW/Clang & GCC ---------- */
+#if defined(_WIN32) && !defined(HAVE_VASPRINTF)
+#  include <stdarg.h>
+#  include <stdlib.h>
+static int vasprintf(char **strp, const char *fmt, va_list ap)
+{
+    int len = _vscprintf(fmt, ap);
+    if (len < 0) return -1;
+    *strp = (char *)malloc((size_t)len + 1);
+    if (!*strp) return -1;
+    return vsnprintf(*strp, (size_t)len + 1, fmt, ap);
+}
+#endif
+/* -------------------------------------------------------------- */
+
+
 #if defined(HAVE_LOCALE_H)
 #include <locale.h>
 #endif
